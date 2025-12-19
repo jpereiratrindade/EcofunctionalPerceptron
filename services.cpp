@@ -1,5 +1,28 @@
 #include "services.h"
 #include <iostream>
+#include <stdexcept>
+
+namespace {
+std::vector<float> buildFeatureVector(const EcofunctionalTrajectory& trajectory) {
+    if (trajectory.history.empty()) return {};
+
+    EcofunctionalVector current = trajectory.history.back().inputVector;
+    EcofunctionalVector delta = trajectory.calculateDelta();
+    EcofunctionalVector avg = trajectory.calculateAverage(3);
+
+    std::vector<float> features;
+    auto vCurr = current.toVector();
+    auto vDelta = delta.toVector();
+    auto vAvg = avg.toVector();
+
+    features.reserve(vCurr.size() * 3);
+    features.insert(features.end(), vCurr.begin(), vCurr.end());
+    features.insert(features.end(), vDelta.begin(), vDelta.end());
+    features.insert(features.end(), vAvg.begin(), vAvg.end());
+
+    return features;
+}
+} // namespace
 
 // ==========================================
 // PerceptronTrainingService
@@ -13,10 +36,20 @@ void PerceptronTrainingService::trainFullExperiment(Perceptron& model,
     
     std::vector<std::vector<float>> X;
     std::vector<float> y;
+    EcofunctionalTrajectory trajectory;
     
     const auto& samples = experiment.getSamples();
+    if (samples.empty()) {
+        throw std::runtime_error("No samples found in experiment for training");
+    }
+
     for (const auto& sample : samples) {
-        X.push_back(sample.inputVector.toVector());
+        trajectory.addSample(sample);
+        auto features = buildFeatureVector(trajectory);
+        if (features.size() != ECOFEATURE_VECTOR_SIZE) {
+            throw std::runtime_error("Unexpected feature size during training");
+        }
+        X.push_back(std::move(features));
         y.push_back(sample.targetLabel);
     }
     
@@ -32,34 +65,11 @@ void PerceptronTrainingService::trainFullExperiment(Perceptron& model,
 InferenceOutput PerceptronInferenceService::inferState(const Perceptron& model, 
                                                        const EcofunctionalTrajectory& trajectory) {
     if (trajectory.history.empty()) return {};
-
+    
     // FEATURE ENGINEERING STRATEGY
     // Input Vector = [Current State (10)] + [Delta (10)] + [Avg3 (10)]
-    // Total Input Size expected by Perceptron = 30
-    
-    EcofunctionalVector current = trajectory.history.back().inputVector;
-    EcofunctionalVector delta = trajectory.calculateDelta();
-    EcofunctionalVector avg = trajectory.calculateAverage(3);
-
-    std::vector<float> inputFeatures;
-    auto vCurr = current.toVector();
-    auto vDelta = delta.toVector();
-    auto vAvg = avg.toVector();
-
-    inputFeatures.insert(inputFeatures.end(), vCurr.begin(), vCurr.end());
-    // For now, to keep using the existing 10-input perceptron without breaking everything immediately,
-    // we will simple WEIGHT the current input based on the trend.
-    // Ideally we would expand the Perceptron input size to 30.
-    
-    // TEMPORARY LOGIC: Modulating the raw input based on positive/negative trends
-    // If the trend (delta) is positive, we slightly boost the input signal.
-    
-    std::vector<float> modulatedInput = vCurr;
-    for(size_t i=0; i<10; ++i) {
-        modulatedInput[i] += vDelta[i] * 0.5f; // Add half of the delta momentum
-    }
-
-    float rawOutput = model.infer(modulatedInput);
+    auto inputFeatures = buildFeatureVector(trajectory);
+    float rawOutput = model.infer(inputFeatures);
     
     InferenceOutput output;
     output.functionalIntegrity = rawOutput;

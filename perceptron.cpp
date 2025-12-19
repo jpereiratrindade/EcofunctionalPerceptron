@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <stdexcept>
 
 using json = nlohmann::json;
 
@@ -13,6 +14,9 @@ float Perceptron::sigmoid(float z) {
 }
 
 float Perceptron::infer(const std::vector<float>& x) const {
+    if (x.size() != weights_.size()) {
+        throw std::invalid_argument("Input size does not match perceptron weights");
+    }
     float z = bias_;
     for (size_t i = 0; i < x.size(); ++i)
         z += weights_[i] * x[i];

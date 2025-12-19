@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <stdexcept>
 
 EcofunctionalExperiment DataLoader::loadExperimentFromCSV(const std::string& filepath, const std::string& experimentId) {
     EcofunctionalExperiment experiment(experimentId);
@@ -10,6 +11,9 @@ EcofunctionalExperiment DataLoader::loadExperimentFromCSV(const std::string& fil
     // Implementing a specific parser here for the Domain CSV format.
     
     std::ifstream file(filepath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open training CSV: " + filepath);
+    }
     std::string line;
     
     // Skip Header
@@ -25,8 +29,8 @@ EcofunctionalExperiment DataLoader::loadExperimentFromCSV(const std::string& fil
         while (std::getline(ss, val, ',')) {
             try {
                 row.push_back(std::stof(val));
-            } catch (...) {
-                continue; 
+            } catch (const std::exception&) {
+                std::cerr << "[DataLoader] Skipping invalid value '" << val << "'\n";
             }
         }
 
@@ -34,6 +38,8 @@ EcofunctionalExperiment DataLoader::loadExperimentFromCSV(const std::string& fil
             EcofunctionalVector vec = EcofunctionalVector::fromVector({row.begin(), row.begin() + 10});
             float target = row[10];
             experiment.addSample({vec, target});
+        } else {
+            std::cerr << "[DataLoader] Skipping line with insufficient columns: " << row.size() << std::endl;
         }
     }
 
@@ -44,6 +50,9 @@ EcofunctionalExperiment DataLoader::loadExperimentFromCSV(const std::string& fil
 EcofunctionalTrajectory DataLoader::loadTrajectoryFromCSV(const std::string& filepath) {
     EcofunctionalTrajectory traj;
     std::ifstream file(filepath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open trajectory CSV: " + filepath);
+    }
     std::string line;
     
     // Skip Header
@@ -58,13 +67,17 @@ EcofunctionalTrajectory DataLoader::loadTrajectoryFromCSV(const std::string& fil
         while (std::getline(ss, val, ',')) {
              try {
                 row.push_back(std::stof(val));
-            } catch (...) { continue; }
+            } catch (const std::exception&) { 
+                std::cerr << "[DataLoader] Skipping invalid value '" << val << "'\n";
+            }
         }
 
         if (row.size() >= 10) { 
             // For inference, we might not have target, use 0.0 default
             EcofunctionalVector vec = EcofunctionalVector::fromVector({row.begin(), row.begin() + 10});
             traj.addSample({vec, 0.0f});
+        } else {
+            std::cerr << "[DataLoader] Skipping line with insufficient columns: " << row.size() << std::endl;
         }
     }
     std::cout << "[DataLoader] Loaded trajectory with " << traj.history.size() << " steps." << std::endl;

@@ -3,6 +3,8 @@
 #include "perceptron.h"
 #include "dataset.h"
 
+constexpr size_t ECOFEATURE_VECTOR_SIZE = 30; // current state (10) + delta (10) + rolling average (10)
+
 // ==========================================
 // Domain Services
 // ==========================================

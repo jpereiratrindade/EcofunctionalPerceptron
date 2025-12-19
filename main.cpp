@@ -41,7 +41,7 @@ int main() {
     auto experiment = DataLoader::loadExperimentFromCSV("training_data.csv", "EXP-CSV-01");
 
     // 2. Train Model
-    Perceptron model(10);
+    Perceptron model(ECOFEATURE_VECTOR_SIZE);
     PerceptronTrainingService trainer;
     trainer.trainFullExperiment(model, experiment, 0.1f, 2000);
 
