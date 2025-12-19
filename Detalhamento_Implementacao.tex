@@ -155,6 +155,20 @@ enum class TrajectoryState {
     \item \textbf{Degrading} $\rightarrow$ Penalização severa.
 \end{itemize}
 
+
 Esta abordagem permite ao modelo distinguir ecossistemas maduros de ecossistemas em recuperação ativa, alinhando-se melhor com a teoria ecológica de Holling.
+
+\section{Fase 4: Engenharia de Dados e Visualização}
+Para escalar a validação do modelo, foi implementada uma pipeline de ingestão de dados externos e ferramentas de análise visual.
+
+\subsection{Pipeline de Carga (Data Loader)}
+A classe `DataLoader` foi introduzida para permitir a leitura de arquivos CSV (`.csv`), desacoplando os dados de teste do código fonte.
+\begin{itemize}
+    \item \textbf{Training Adapter}: Converte linhas CSV em `EcofunctionalExperiment`.
+    \item \textbf{Trajectory Adapter}: Converte séries temporais em `EcofunctionalTrajectory`.
+\end{itemize}
+
+\subsection{Visualização de Histerese}
+Um script auxiliar em Python (`plot_trajectory.py`) consome os logs de inferência (JSON) gerados pelo sistema C++. Ele plota a \textit{Integridade Funcional} ao longo do tempo e ajuda a visualizar visualmente os fenômenos de histerese e inércia ecológica capturados pela lógica de domínio.
 
 \end{document}

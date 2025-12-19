@@ -16,6 +16,8 @@ add_executable(EcofunctionalPerceptron
     domain.h
     services.cpp
     services.h
+    data_loader.cpp
+    data_loader.h
 )
 
 target_link_libraries(EcofunctionalPerceptron PRIVATE nlohmann_json::nlohmann_json)
