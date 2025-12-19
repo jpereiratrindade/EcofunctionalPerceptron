@@ -61,16 +61,42 @@ InferenceOutput PerceptronInferenceService::inferState(const Perceptron& model,
 
     float rawOutput = model.infer(modulatedInput);
     
-    // Mapping raw perceptron output (0-1) to Domain Semantics
-    // Note: In a real complex model, these might be separate outputs or more complex logic.
-    // Here we assume the single output approximates 'Functional Integrity'.
-    
     InferenceOutput output;
     output.functionalIntegrity = rawOutput;
     
-    // Deriving other metrics based on integrity (hypothetical logic for this subdomain)
-    output.resiliencePotential = rawOutput * 0.9f; // Simplified correlation
-    output.recoveryCapacity = (rawOutput > 0.5f) ? 1.0f : 0.2f; 
+    // =========================================================
+    // PHASE 3: Continuous Recovery & Hysteresis
+    // =========================================================
+    
+    // Analyze trajectory state
+    auto state = trajectory.analyzeState();
+    float vegTrend = trajectory.getVegetationTrend();
+    
+    // Logic for Recovery Capacity (0.0 - 1.0)
+    // 1. High Integrity + Stable = Climax (High Resilience)
+    // 2. High Integrity + Positive Trend = Robust Recovery (Very High Resilience)
+    // 3. Low Integrity + Positive Trend = Early Recovery (Medium Resilience)
+    // 4. Negative Trend = Collapsing (Low Resilience)
+    
+    if (rawOutput > 0.7f) {
+        if (state == EcofunctionalTrajectory::TrajectoryState::RECOVERING) {
+            output.recoveryCapacity = 1.0f; // Robust, active recovery
+        } else if (state == EcofunctionalTrajectory::TrajectoryState::STABLE) {
+            output.recoveryCapacity = 0.9f; // Mature/Climax
+        } else {
+            output.recoveryCapacity = 0.7f; // Declining high state
+        }
+    } else {
+        if (state == EcofunctionalTrajectory::TrajectoryState::RECOVERING) {
+            output.recoveryCapacity = 0.5f + (vegTrend * 2.0f); // Variable early recovery
+            if (output.recoveryCapacity > 0.8f) output.recoveryCapacity = 0.8f;
+        } else {
+             output.recoveryCapacity = 0.1f; // Degraded and static/worsening
+        }
+    }
+    
+    // Resilience Potential correlates with both Integrity and Capacity
+    output.resiliencePotential = (output.functionalIntegrity + output.recoveryCapacity) / 2.0f;
     
     return output;
 }

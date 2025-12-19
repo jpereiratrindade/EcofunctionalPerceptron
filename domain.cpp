@@ -108,6 +108,42 @@ EcofunctionalVector EcofunctionalTrajectory::calculateAverage(int windowSize) co
     return sum / static_cast<float>(count);
 }
 
+float EcofunctionalTrajectory::getVegetationTrend() const {
+    EcofunctionalVector delta = calculateDelta();
+    // Simplified aggregated trend for vegetation
+    return (delta.vegetationCoverageEI + delta.vegetationCoverageES + 
+            delta.vegetationVigorEI + delta.vegetationVigorES) / 4.0f;
+}
+
+float EcofunctionalTrajectory::getHydroTrend() const {
+    EcofunctionalVector delta = calculateDelta();
+    // Hydro trend: +HydroFlux is usually good, +Infiltration is good.
+    return (delta.hydroFlux + delta.soilInfiltration) / 2.0f;
+}
+
+EcofunctionalTrajectory::TrajectoryState EcofunctionalTrajectory::analyzeState() const {
+    if (history.size() < 2) return TrajectoryState::UNKNOWN;
+
+    float vegTrend = getVegetationTrend();
+    float totalDeltaMagnitude = 0; // sum of absolute deltas could be used to detect stability
+    
+    // Heuristic Thresholds (To be calibrated)
+    const float STABILITY_THRESHOLD = 0.01f;
+    const float RECOVERY_THRESHOLD = 0.05f;
+
+    if (std::abs(vegTrend) < STABILITY_THRESHOLD) {
+        return TrajectoryState::STABLE;
+    } else if (vegTrend > RECOVERY_THRESHOLD) {
+        return TrajectoryState::RECOVERING;
+    } else if (vegTrend < -RECOVERY_THRESHOLD) {
+        return TrajectoryState::COLLAPSING;
+    } else if (vegTrend < 0) {
+        return TrajectoryState::DEGRADING;
+    }
+    
+    return TrajectoryState::STABLE; // Default fallback
+}
+
 
 // ==========================================
 // EcofunctionalExperiment

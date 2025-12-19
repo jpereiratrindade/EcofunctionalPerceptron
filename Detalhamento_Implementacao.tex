@@ -129,6 +129,32 @@ struct EcofunctionalTrajectory {
 \subsection{Lógica de Inferência Contextual}
 O serviço de inferência foi atualizado para considerar o \textbf{Momento} (Momentum) da paisagem. Se o ecossistema apresenta uma tendência positiva (ex: aumento de cobertura vegetal ao longo do tempo), a inferência de integridade é positivamente modulada.
 
+
 Isso permite diferenciar um ecossistema estagnado de um que está em processo ativo de regeneração, mesmo que ambos tenham o mesmo estado estático atual.
+
+\section{Fase 3: Nuance Ecológica e Histerese}
+A lógica de recuperação foi refinada para abandonar a binariedade (0/1) em favor de uma escola contínua e heurísticas de histerese.
+
+\subsection{Capacidade de Recuperação Contínua}
+A métrica `RecoveryCapacity` agora opera no intervalo $[0.0, 1.0]$, calculada pela combinação de \textit{Integridade Funcional} e \textit{Estado da Trajetória}.
+
+\begin{lstlisting}[language=C++]
+enum class TrajectoryState {
+    STABLE,     // Climax ou estagnacao
+    RECOVERING, // Ganho ativo de funcao
+    DEGRADING,  // Perda ativa
+    COLLAPSING  // Perda critica
+};
+\end{lstlisting}
+
+\subsection{Regras Heurísticas}
+\begin{itemize}
+    \item \textbf{High State + Stable} $\rightarrow$ Recovery 0.9 (Clímax, robusto).
+    \item \textbf{High State + Recovering} $\rightarrow$ Recovery 1.0 (Ganho por histerese/momento).
+    \item \textbf{Low State + Recovering} $\rightarrow$ Recovery Variable (Resiliência emergente).
+    \item \textbf{Degrading} $\rightarrow$ Penalização severa.
+\end{itemize}
+
+Esta abordagem permite ao modelo distinguir ecossistemas maduros de ecossistemas em recuperação ativa, alinhando-se melhor com a teoria ecológica de Holling.
 
 \end{document}

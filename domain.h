@@ -45,6 +45,19 @@ struct EcofunctionalTrajectory {
     // Feature Engineering Methods
     EcofunctionalVector calculateAverage(int windowSize) const;
     EcofunctionalVector calculateDelta() const; // Last - Penultimate
+
+    // Ecological Analysis
+    enum class TrajectoryState {
+        STABLE,
+        RECOVERING,
+        DEGRADING,
+        COLLAPSING,
+        UNKNOWN
+    };
+
+    TrajectoryState analyzeState() const;
+    float getVegetationTrend() const;
+    float getHydroTrend() const;
 };
 
 struct InferenceOutput {
