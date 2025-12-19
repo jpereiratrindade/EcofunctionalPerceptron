@@ -36,7 +36,7 @@
 
 \lstset{style=mystyle}
 
-\title{\textbf{Detalhamento da Implementação: Perceptron Ecofuncional}}
+\title{\textbf{Detalhamento da Implementação: Perceptron Ecofuncional}\\\small Atualizado para v0.2.1 (vetor temporal de 30 features)}
 \author{Documentação Técnica do Projeto}
 \date{\today}
 
@@ -47,7 +47,7 @@
 \newpage
 
 \section{Introdução}
-Este documento detalha a implementação em C++ do subdomínio de inferência ecofuncional, conforme definido no DDD do projeto. O objetivo é demonstrar como os conceitos teóricos foram mapeados para estruturas de código e serviços.
+Este documento detalha a implementação em C++ do subdomínio de inferência ecofuncional, conforme definido no DDD do projeto. O release v0.2.1 introduz ingestão robusta de CSV (falha cedo em caso de arquivo ausente ou colunas faltantes) e um vetor temporal de 30 features (estado + delta + média móvel) para capturar histerese.
 
 \section{Arquitetura do Sistema}
 O sistema foi construído seguindo uma arquitetura em camadas para isolar a lógica de domínio da infraestrutura de aprendizado de máquina.
@@ -78,10 +78,26 @@ struct EcofunctionalVector {
 \subsection{EcofunctionalExperiment (Aggregate Root)}
 Gerencia um ciclo de experimento, contendo um conjunto de amostras (`EcofunctionalSample`) e uma identidade única. Garante que todas as amostras pertençam ao mesmo contexto experimental.
 
+\subsection{EcofunctionalTrajectory}
+Armazena o histórico ordenado de amostras e expõe utilitários para engenharia de features temporais:
+\begin{itemize}
+    \item \textbf{calculateDelta}: derivada discreta entre os dois últimos estados;
+    \item \textbf{calculateAverage}: média móvel (janela configurável, uso padrão 3);
+    \item \textbf{analyzeState}: classifica a trajetória (estável, recuperação, degradação, colapso).
+\end{itemize}
+
+\subsection{Feature Vector Temporal (30)}
+O vetor efetivamente consumido pelo Perceptron concatena:
+\begin{enumerate}
+    \item Estado atual (10 atributos);
+    \item Delta entre amostras consecutivas (10 atributos);
+    \item Média móvel (janela 3) dos mesmos atributos (10 atributos).
+\end{enumerate}
+
 \section{Implementação de Serviços}
 
 \subsection{PerceptronTrainingService}
-Atua como uma fachada que traduz objetos de domínio para tensores numéricos compreensíveis pelo Perceptron. Isso impede que o Perceptron precise conhecer detalhes sobre "Solo" ou "Vegetação".
+Atua como uma fachada que traduz objetos de domínio para o vetor temporal de 30 entradas. O serviço acumula a trajetória ao iterar as amostras do experimento, gerando as features de estado + delta + média móvel antes de chamar `model.train`.
 
 \begin{lstlisting}[language=C++]
 void trainFullExperiment(Perceptron& model, 
@@ -99,13 +115,12 @@ O projeto utiliza \textbf{CMake} para gerenciamento de build, garantindo portabi
 \end{itemize}
 
 \section{Verificação e Uso}
-O arquivo `main.cpp` serve como prova de conceito, realizando o seguinte fluxo:
+O arquivo `main.cpp` serve como prova de conceito, realizando o seguinte fluxo com dados externos:
 \begin{enumerate}
-    \item Instanciação de um Experimento.
-    \item Criação de dados sintéticos (Simulação de input ecológico).
-    \item Treinamento supervisionado via Serviço.
-    \item Inferência em novos estados desconhecidos.
-    \item Persistência do modelo treinado em JSON.
+    \item Carrega `training_data.csv` (10 atributos + alvo) com validação de colunas e cabeçalho.
+    \item Treina supervisionadamente via `PerceptronTrainingService`, gerando features temporais (30).
+    \item Carrega `trajectory_data.csv` (10 atributos) e executa inferência incremental para cada passo.
+    \item Persiste o log de inferência em JSON (`inference_results.json`) para visualização.
 \end{enumerate}
 
 \section{Fase 2: Engenharia de Features Temporais}
@@ -127,7 +142,7 @@ struct EcofunctionalTrajectory {
 \end{lstlisting}
 
 \subsection{Lógica de Inferência Contextual}
-O serviço de inferência foi atualizado para considerar o \textbf{Momento} (Momentum) da paisagem. Se o ecossistema apresenta uma tendência positiva (ex: aumento de cobertura vegetal ao longo do tempo), a inferência de integridade é positivamente modulada.
+O serviço de inferência consome o vetor de 30 entradas (estado + delta + média móvel) e usa a classificação da trajetória (estável/recuperação/degradação/colapso) para atribuir a métrica de \textit{RecoveryCapacity}.
 
 
 Isso permite diferenciar um ecossistema estagnado de um que está em processo ativo de regeneração, mesmo que ambos tenham o mesmo estado estático atual.
@@ -159,7 +174,7 @@ enum class TrajectoryState {
 Esta abordagem permite ao modelo distinguir ecossistemas maduros de ecossistemas em recuperação ativa, alinhando-se melhor com a teoria ecológica de Holling.
 
 \section{Fase 4: Engenharia de Dados e Visualização}
-Para escalar a validação do modelo, foi implementada uma pipeline de ingestão de dados externos e ferramentas de análise visual.
+Para escalar a validação do modelo, foi implementada uma pipeline de ingestão de dados externos e ferramentas de análise visual. A ingestão valida abertura de arquivo e número mínimo de colunas, falhando cedo para preservar reprodutibilidade.
 
 \subsection{Pipeline de Carga (Data Loader)}
 A classe `DataLoader` foi introduzida para permitir a leitura de arquivos CSV (`.csv`), desacoplando os dados de teste do código fonte.

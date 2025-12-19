@@ -35,7 +35,7 @@ void saveInferenceLog(const std::string& filename, const std::vector<InferenceOu
 }
 
 int main() {
-    std::cout << "=== Ecofunctional Perceptron Experiment v0.2.0 (CSV Pipeline) ===\n" << std::endl;
+    std::cout << "=== Ecofunctional Perceptron Experiment v0.2.1 (CSV Pipeline) ===\n" << std::endl;
 
     // 1. Load Training Data
     auto experiment = DataLoader::loadExperimentFromCSV("training_data.csv", "EXP-CSV-01");

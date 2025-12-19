@@ -1,4 +1,4 @@
-# Ecofunctional Perceptron
+# Ecofunctional Perceptron (v0.2.1)
 
 **Subdomínio experimental para inferência e avaliação ecofuncional.**
 
@@ -6,13 +6,14 @@ Este projeto implementa um motor de inferência baseado em **Domain-Driven Desig
 
 ## Funcionalidades Principais
 
-*   **Domínio Ecofuncional**: Modelagem rica de vetores ecológicos (Solo, Hidrologia, Vegetação).
-*   **Análise de Trajetória**: O sistema avalia sequências temporais ($t_0, \dots, t_n$) para detectar tendências ($\Delta$) e inércia.
-*   **Capacidade de Recuperação Contínua**: Lógica heurística que distingue entre estados "Estáveis" (Clímax) e "Em Recuperação" (Histerese positiva).
+*   **Domínio Ecofuncional**: Vetor ecológico com 10 atributos (solo, hidrologia, vegetação).
+*   **Engenharia de Features Temporais (30 entradas)**: Concatenamos estado atual (10) + delta (10) + média móvel (10) para capturar histerese e momentum ecológico.
+*   **Capacidade de Recuperação Contínua**: Heurísticas que distinguem estável, recuperação, degradação e colapso.
+*   **Ingestão Robusta de CSV**: Validação de cabeçalho/linhas, falha rápida se arquivo não abre ou colunas faltam.
 *   **Infraestrutura Híbrida**:
-    *   **Core C++**: Alta performance para inferência e lógica de domínio.
-    *   **Pipeline de Dados**: Ingestão de CSVs para treinamento e inferência.
-    *   **Visualização Python**: Scripts para plotagem de trajetórias e diagnóstico visual.
+    *   **Core C++17 + CMake**: Inferência e lógica de domínio.
+    *   **Pipeline de Dados**: Treino (`training_data.csv`) e inferência (`trajectory_data.csv`) via CSV.
+    *   **Visualização Python**: `plot_trajectory.py` para gerar `trajectory_plot.png`.
 
 ## Estrutura do Projeto
 
@@ -39,22 +40,20 @@ Este projeto implementa um motor de inferência baseado em **Domain-Driven Desig
 
 2.  **Compile o projeto:**
     ```bash
-    mkdir build
-    cd build
-    cmake ..
-    make
+    cmake -S . -B build
+    cmake --build build
     ```
 
-3.  **Execute a Pipeline:**
-    Isso treinará o modelo com `training_data.csv`, rodará a inferência em `trajectory_data.csv` e salvará os resultados.
+3.  **Execute a pipeline completa:**
+    Treina com `training_data.csv`, roda inferência incremental em `trajectory_data.csv` usando o vetor de 30 features e salva `inference_results.json`.
     ```bash
-    ./EcofunctionalPerceptron
+    ./build/EcofunctionalPerceptron
     ```
 
-4.  **Visualize os Resultados:**
+4.  **Visualize os resultados:**
     Gera o gráfico `trajectory_plot.png`.
     ```bash
-    python3 ../plot_trajectory.py inference_results.json
+    python3 plot_trajectory.py inference_results.json
     ```
 
 ## Licença
