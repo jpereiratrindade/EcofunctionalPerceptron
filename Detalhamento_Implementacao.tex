@@ -1,0 +1,134 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\geometry{top=3cm,bottom=2cm,left=3cm,right=2cm}
+
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{red},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{\textbf{Detalhamento da Implementação: Perceptron Ecofuncional}}
+\author{Documentação Técnica do Projeto}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introdução}
+Este documento detalha a implementação em C++ do subdomínio de inferência ecofuncional, conforme definido no DDD do projeto. O objetivo é demonstrar como os conceitos teóricos foram mapeados para estruturas de código e serviços.
+
+\section{Arquitetura do Sistema}
+O sistema foi construído seguindo uma arquitetura em camadas para isolar a lógica de domínio da infraestrutura de aprendizado de máquina.
+
+\subsection{Camada de Domínio e Infraestrutura}
+\begin{itemize}
+    \item \textbf{Domain Layer}: Contém as regras de negócio, entidades e objetos de valor (`EcofunctionalVector`, `EcofunctionalExperiment`).
+    \item \textbf{Service Layer}: Orquestra o fluxo de dados entre o domínio e o modelo (`PerceptronTrainingService`, `PerceptronInferenceService`).
+    \item \textbf{Infrastructure/Core}: Implementação pura do algoritmo (`Perceptron`).
+\end{itemize}
+
+\section{Implementação do Domínio}
+
+\subsection{EcofunctionalVector (Value Object)}
+Representa o estado imutável de um patch da paisagem. Mapeia os 10 atributos ecofuncionais essenciais.
+
+\begin{lstlisting}[language=C++]
+struct EcofunctionalVector {
+    float soilDepth;
+    float soilCompaction;
+    // ... outros atributos
+    float propagulePotential;
+
+    std::vector<float> toVector() const;
+};
+\end{lstlisting}
+
+\subsection{EcofunctionalExperiment (Aggregate Root)}
+Gerencia um ciclo de experimento, contendo um conjunto de amostras (`EcofunctionalSample`) e uma identidade única. Garante que todas as amostras pertençam ao mesmo contexto experimental.
+
+\section{Implementação de Serviços}
+
+\subsection{PerceptronTrainingService}
+Atua como uma fachada que traduz objetos de domínio para tensores numéricos compreensíveis pelo Perceptron. Isso impede que o Perceptron precise conhecer detalhes sobre "Solo" ou "Vegetação".
+
+\begin{lstlisting}[language=C++]
+void trainFullExperiment(Perceptron& model, 
+                         const EcofunctionalExperiment& exp, 
+                         float lr, 
+                         int epochs);
+\end{lstlisting}
+
+\section{Build System}
+O projeto utiliza \textbf{CMake} para gerenciamento de build, garantindo portabilidade.
+
+\begin{itemize}
+    \item \textbf{Compilador}: Requer suporte a C++17.
+    \item \textbf{Dependências}: \textit{nlohmann\_json} para serialização do modelo.
+\end{itemize}
+
+\section{Verificação e Uso}
+O arquivo `main.cpp` serve como prova de conceito, realizando o seguinte fluxo:
+\begin{enumerate}
+    \item Instanciação de um Experimento.
+    \item Criação de dados sintéticos (Simulação de input ecológico).
+    \item Treinamento supervisionado via Serviço.
+    \item Inferência em novos estados desconhecidos.
+    \item Persistência do modelo treinado em JSON.
+\end{enumerate}
+
+\section{Fase 2: Engenharia de Features Temporais}
+Para capturar a dinâmica não-linear de recuperação ecológica, o sistema foi evoluído para processar \textbf{Trajetórias} em vez de apenas estados estáticos.
+
+\subsection{Trajetória Ecofuncional}
+A entidade `EcofunctionalTrajectory` armazena o histórico temporal ($t_0, t_1, \dots, t_n$) de amostras.
+
+\begin{lstlisting}[language=C++]
+struct EcofunctionalTrajectory {
+    std::vector<EcofunctionalSample> history;
+    
+    // Calcula a variacao (derivada discreta)
+    EcofunctionalVector calculateDelta() const;
+    
+    // Suaviza ruidos temporais
+    EcofunctionalVector calculateAverage(int windowSize) const;
+};
+\end{lstlisting}
+
+\subsection{Lógica de Inferência Contextual}
+O serviço de inferência foi atualizado para considerar o \textbf{Momento} (Momentum) da paisagem. Se o ecossistema apresenta uma tendência positiva (ex: aumento de cobertura vegetal ao longo do tempo), a inferência de integridade é positivamente modulada.
+
+Isso permite diferenciar um ecossistema estagnado de um que está em processo ativo de regeneração, mesmo que ambos tenham o mesmo estado estático atual.
+
+\end{document}

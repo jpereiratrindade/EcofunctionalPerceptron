@@ -1,0 +1,31 @@
+# Build directories
+build/
+buld/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+*.a
+*.o
+
+# Executables
+EcofunctionalPerceptron
+
+# Artifacts
+*.json
+*.pdf
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.dvi
+*.fls
+*.fdb_latexmk
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*~
