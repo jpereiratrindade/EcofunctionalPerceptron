@@ -117,10 +117,10 @@ O projeto utiliza \textbf{CMake} para gerenciamento de build, garantindo portabi
 \section{Verificação e Uso}
 O arquivo `main.cpp` serve como prova de conceito, realizando o seguinte fluxo com dados externos:
 \begin{enumerate}
-    \item Carrega `training_data.csv` (10 atributos + alvo) com validação de colunas e cabeçalho.
+    \item Carrega `data/training_data.csv` (10 atributos + \textit{FunctionalIntegrity}) com validação de colunas e cabeçalho.
     \item Treina supervisionadamente via `PerceptronTrainingService`, gerando features temporais (30).
-    \item Carrega `trajectory_data.csv` (10 atributos) e executa inferência incremental para cada passo.
-    \item Persiste o log de inferência em JSON (`inference_results.json`) para visualização.
+    \item Carrega `data/trajectory_data.csv` (10 atributos) e executa inferência incremental para cada passo.
+    \item Persiste o log de inferência em JSON (`outputs/inference_results.json`) para visualização.
 \end{enumerate}
 
 \section{Fase 2: Engenharia de Features Temporais}
@@ -184,6 +184,6 @@ A classe `DataLoader` foi introduzida para permitir a leitura de arquivos CSV (`
 \end{itemize}
 
 \subsection{Visualização de Histerese}
-Um script auxiliar em Python (`plot_trajectory.py`) consome os logs de inferência (JSON) gerados pelo sistema C++. Ele plota a \textit{Integridade Funcional} ao longo do tempo e ajuda a visualizar visualmente os fenômenos de histerese e inércia ecológica capturados pela lógica de domínio.
+Um script auxiliar em Python (`scripts/plot_trajectory.py`) consome os logs de inferência (JSON) gerados pelo sistema C++. Ele plota a \textit{Integridade Funcional} ao longo do tempo e ajuda a visualizar visualmente os fenômenos de histerese e inércia ecológica capturados pela lógica de domínio.
 
 \end{document}

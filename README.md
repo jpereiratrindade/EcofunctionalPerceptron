@@ -12,16 +12,17 @@ Este projeto implementa um motor de inferência baseado em **Domain-Driven Desig
 *   **Ingestão Robusta de CSV**: Validação de cabeçalho/linhas, falha rápida se arquivo não abre ou colunas faltam.
 *   **Infraestrutura Híbrida**:
     *   **Core C++17 + CMake**: Inferência e lógica de domínio.
-    *   **Pipeline de Dados**: Treino (`training_data.csv`) e inferência (`trajectory_data.csv`) via CSV.
-    *   **Visualização Python**: `plot_trajectory.py` para gerar `trajectory_plot.png`.
+    *   **Pipeline de Dados**: Treino (`data/training_data.csv`) e inferência (`data/trajectory_data.csv`) via CSV.
+    *   **Visualização Python**: `scripts/plot_trajectory.py` para gerar `outputs/trajectory_plot.png`.
 
 ## Estrutura do Projeto
 
-*   `domain.h/cpp`: Lógica de negócio (Entidades, Value Objects, Trajetórias).
-*   `services.h/cpp`: Orquestração da inferência e treinamento.
-*   `perceptron.h/cpp`: Implementação da Rede Neural (Infraestrutura).
-*   `data_loader.h/cpp`: Adaptadores para leitura de CSV.
-*   `plot_trajectory.py`: Visualização dos resultados de inferência.
+*   `src/`: Implementações C++.
+*   `include/`: Headers C++.
+*   `data/`: Dados de treino e trajetória.
+*   `scripts/`: Utilitários (plotagem).
+*   `docs/`: Documentação LaTeX.
+*   `outputs/`: Resultados gerados (JSON e PNG).
 
 ## Pré-requisitos
 
@@ -45,15 +46,15 @@ Este projeto implementa um motor de inferência baseado em **Domain-Driven Desig
     ```
 
 3.  **Execute a pipeline completa:**
-    Treina com `training_data.csv`, roda inferência incremental em `trajectory_data.csv` usando o vetor de 30 features e salva `inference_results.json`.
+    Treina com `data/training_data.csv` (10 atributos + `FunctionalIntegrity`), roda inferência incremental em `data/trajectory_data.csv` usando o vetor de 30 features e salva `outputs/inference_results.json`.
     ```bash
     ./build/EcofunctionalPerceptron
     ```
 
 4.  **Visualize os resultados:**
-    Gera o gráfico `trajectory_plot.png`.
+    Gera o gráfico `outputs/trajectory_plot.png`.
     ```bash
-    python3 plot_trajectory.py inference_results.json
+    python3 scripts/plot_trajectory.py
     ```
 
 ## Licença

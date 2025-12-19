@@ -7,17 +7,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(nlohmann_json REQUIRED)
 
 add_executable(EcofunctionalPerceptron
-    main.cpp
-    dataset.cpp
-    dataset.h
-    perceptron.cpp
-    perceptron.h
-    domain.cpp
-    domain.h
-    services.cpp
-    services.h
-    data_loader.cpp
-    data_loader.h
+    src/main.cpp
+    src/dataset.cpp
+    src/perceptron.cpp
+    src/domain.cpp
+    src/services.cpp
+    src/data_loader.cpp
 )
 
+target_include_directories(EcofunctionalPerceptron PRIVATE include)
 target_link_libraries(EcofunctionalPerceptron PRIVATE nlohmann_json::nlohmann_json)

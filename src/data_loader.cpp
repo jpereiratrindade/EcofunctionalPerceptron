@@ -25,7 +25,7 @@ EcofunctionalExperiment DataLoader::loadExperimentFromCSV(const std::string& fil
         std::string val;
         std::vector<float> row;
         
-        // CSV Format: SoildDepth, SoilComp, ..., Propagule, Target
+        // CSV Format: SoildDepth, SoilComp, ..., Propagule, FunctionalIntegrity
         while (std::getline(ss, val, ',')) {
             try {
                 row.push_back(std::stof(val));

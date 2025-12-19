@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
-#include <fstream> 
+#include <fstream>
+#include <filesystem>
 #include "domain.h"
 #include "services.h"
 #include "perceptron.h"
@@ -38,7 +39,7 @@ int main() {
     std::cout << "=== Ecofunctional Perceptron Experiment v0.2.1 (CSV Pipeline) ===\n" << std::endl;
 
     // 1. Load Training Data
-    auto experiment = DataLoader::loadExperimentFromCSV("training_data.csv", "EXP-CSV-01");
+    auto experiment = DataLoader::loadExperimentFromCSV("data/training_data.csv", "EXP-CSV-01");
 
     // 2. Train Model
     Perceptron model(ECOFEATURE_VECTOR_SIZE);
@@ -46,7 +47,7 @@ int main() {
     trainer.trainFullExperiment(model, experiment, 0.1f, 2000);
 
     // 3. Load Trajectory for Inference
-    auto trajectory = DataLoader::loadTrajectoryFromCSV("trajectory_data.csv");
+    auto trajectory = DataLoader::loadTrajectoryFromCSV("data/trajectory_data.csv");
 
     // 4. Run Sequential Inference (Piecewise Analysis)
     // To visualize hysteresis, we evaluate the trajectory step-by-step
@@ -69,8 +70,9 @@ int main() {
     }
 
     // 5. Save Results for Visualization
-    saveInferenceLog("inference_results.json", resultsLog);
-    std::cout << "\nResults saved to 'inference_results.json'. Run plotting script!" << std::endl;
+    std::filesystem::create_directories("outputs");
+    saveInferenceLog("outputs/inference_results.json", resultsLog);
+    std::cout << "\nResults saved to 'outputs/inference_results.json'. Run plotting script!" << std::endl;
 
     return 0;
 }

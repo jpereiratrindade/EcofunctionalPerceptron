@@ -1,5 +1,6 @@
 import json
 import matplotlib.pyplot as plt
+import os
 import sys
 
 def plot_results(json_path):
@@ -36,12 +37,13 @@ def plot_results(json_path):
                  xytext=(steps[-1]-1, recovery[-1]+0.1),
                  arrowprops=dict(facecolor='black', shrink=0.05))
 
-    output_file = "trajectory_plot.png"
+    os.makedirs("outputs", exist_ok=True)
+    output_file = os.path.join("outputs", "trajectory_plot.png")
     plt.savefig(output_file)
     print(f"Plot saved to {output_file}")
 
 if __name__ == "__main__":
-    json_file = "inference_results.json"
+    json_file = os.path.join("outputs", "inference_results.json")
     if len(sys.argv) > 1:
         json_file = sys.argv[1]
     plot_results(json_file)
